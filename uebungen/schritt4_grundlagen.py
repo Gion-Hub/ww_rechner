@@ -48,3 +48,16 @@ print("Erste Wohnung:", verbrauch_pro_wohnung[0], "l/d")
 for liter in verbrauch_pro_wohnung:
     q = waermebedarf_kwh(liter, 60, 10)
     print(f"{liter} l  ->  {q:.2f} kWh")
+
+
+# Teil E
+def tagesbedarf_liter(personen, liter_pro_person):
+    """Tagesbedarf an Warmwasser in Litern."""
+    return personen * liter_pro_person
+
+
+bedarf = tagesbedarf_liter(8, 40)
+print("Tagesbedarf:", bedarf, "Liter")
+
+energie = waermebedarf_kwh(bedarf, 60, 10)
+print(f"Energie dafür: {energie:.2f} kWh")
