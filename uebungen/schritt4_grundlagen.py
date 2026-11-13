@@ -9,10 +9,11 @@ delta_t = t_warm - t_kalt
 energie_wh = volumen * c_wasser * delta_t
 energie_kwh = energie_wh / 1000
 
-#Teil B
 print("temperaturdifferenz: ", delta_t, "K")
 print(f"energie: {energie_kwh:.2f} kWh ")
 
+
+#Teil B
 def waermebedarf_kwh(volumen_l, t_warm, t_kalt):
     """Energie, um Wasser von t_kalt auf t_warm zu erwärmen, in kWh."""
     c_wasser = 1.163
