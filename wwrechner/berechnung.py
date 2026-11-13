@@ -13,3 +13,17 @@ def waermebedarf_kwh(volumen_l, t_warm, t_kalt):
     energie_wh = volumen_l * C_WASSER * (t_warm - t_kalt)
     return energie_wh / 1000
 
+
+def verbrauch_pro_stunde(tagesbedarf_l, profil_prozent):
+    """Verteilt den Tagesbedarf auf 24 Stunden. Gibt eine Liste mit Litern pro Stunde zurück."""
+    stunden_liter = []
+    for anteil in profil_prozent:
+        stunden_liter.append(tagesbedarf_l * anteil / 100)
+    return stunden_liter
+
+
+def spitzenstunde(stunden_liter):
+    """Stunde mit dem grössten Verbrauch. Gibt (Stunde, Liter) zurück."""
+    maximum = max(stunden_liter)
+    stunde = stunden_liter.index(maximum)
+    return stunde, maximum
