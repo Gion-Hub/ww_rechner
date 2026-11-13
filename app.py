@@ -3,7 +3,16 @@
 import pandas as pd
 import streamlit as st
 
-from wwrechner.berechnung import spitzenstunde, tagesbedarf_liter, verbrauch_pro_stunde, waermebedarf_kwh
+from wwrechner.berechnung import (
+    ausstossverlust_kwh,
+    speicherverlust_kwh,
+    spitzenstunde,
+    stundenspitze_anteil,
+    tagesbedarf_liter,
+    verbrauch_pro_stunde,
+    waermebedarf_kwh,
+    zirkulationsverlust_kwh,
+)
 from wwrechner.diagramme import tagesprofil_diagramm
 from wwrechner.tabellen import PROFIL_WOHNEN, T_KALTWASSER, T_WARMWASSER
 
@@ -39,3 +48,24 @@ st.pyplot(tagesprofil_diagramm(stunden_liter))
 
 tabelle = pd.DataFrame({"Stunde": range(24), "Verbrauch [l/h]": stunden_liter})
 st.dataframe(tabelle.round(1), hide_index=True)
+
+
+
+# --- Stundenspitze und Verluste ---
+st.header("Stundenspitze und Verluste")
+wohnungen = st.number_input("Anzahl Wohnungen", min_value=1, max_value=200, value=4)
+zirk_laenge = st.number_input("Länge Zirkulationsleitung [m]", min_value=0, max_value=2000, value=50)
+warmhaltung = st.checkbox("Mit Warmhaltung (Zirkulation)", value=True)
+speicher_volumen = st.number_input("Speichervolumen (vorläufig) [l]", min_value=50, max_value=10000, value=500, step=50)
+
+anteil = stundenspitze_anteil(personen)
+spitze_liter = bedarf * anteil
+q_zirk = zirkulationsverlust_kwh(zirk_laenge)
+q_ausstoss = ausstossverlust_kwh(wohnungen, warmhaltung)
+q_speicher = speicherverlust_kwh(speicher_volumen)
+
+st.metric("Stundenspitze SIA 385/2", f"{spitze_liter:.0f} l/h", f"{anteil * 100:.1f} % des Tagesbedarfs", delta_color="off")
+v1, v2, v3 = st.columns(3)
+v1.metric("Zirkulation", f"{q_zirk:.2f} kWh/d")
+v2.metric("Ausstoss", f"{q_ausstoss:.2f} kWh/d")
+v3.metric("Speicher", f"{q_speicher:.2f} kWh/d")

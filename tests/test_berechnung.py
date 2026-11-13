@@ -1,10 +1,14 @@
 """Automatische Tests für berechnung.py. Ausführen mit: pytest"""
 
 from wwrechner.berechnung import (
+    ausstossverlust_kwh,
+    speicherverlust_kwh,
     spitzenstunde,
+    stundenspitze_anteil,
     tagesbedarf_liter,
     verbrauch_pro_stunde,
     waermebedarf_kwh,
+    zirkulationsverlust_kwh,
 )
 from wwrechner.tabellen import PROFIL_WOHNEN
 
@@ -37,3 +41,27 @@ def test_spitzenstunde_morgens_um_8():
     stunde, liter = spitzenstunde(stunden)
     assert stunde == 8
     assert round(liter, 1) == 83.9
+
+
+
+def test_stundenspitze_25_personen():
+    assert round(stundenspitze_anteil(25), 4) == 0.3012
+
+
+def test_stundenspitze_uebergang_bei_10_personen():
+    # Beide Formeln sollen bei 10 Personen fast gleich sein (kein Sprung)
+    assert abs(stundenspitze_anteil(10) - stundenspitze_anteil(9.99)) < 0.01
+
+
+def test_zirkulationsverlust():
+    assert zirkulationsverlust_kwh(50) == 6.0
+
+
+def test_ausstossverlust_mit_und_ohne_warmhaltung():
+    assert round(ausstossverlust_kwh(4, True), 2) == 2.2
+    assert round(ausstossverlust_kwh(4, False), 2) == 3.08
+
+
+def test_speicherverlust_1000_liter():
+    assert round(speicherverlust_kwh(1000), 2) == 3.48
+    assert round(speicherverlust_kwh(1000, stutzen=6), 2) == 3.88

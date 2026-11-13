@@ -16,3 +16,17 @@ PROFIL_WOHNEN = [
     5.7942, 5.9940, 4.6953, 4.0959, 3.7962, 4.4955,  # 12-18 Uhr
     5.5944, 6.5934, 6.3936, 6.0939, 4.9950, 3.3966,  # 18-24 Uhr
 ]
+
+
+# --- Verluste nach SIA 385/2 ---
+# Zirkulation: Wärmeverlust pro Meter Leitung und Tag
+VERLUST_ZIRKULATION = 0.12  # kWh/(m·d), konventionelle Zirkulation
+
+# Ausstossverluste Wohnen: Wärme pro Zapfung, bis das Wasser warm kommt
+AUSSTOSS_MIT_WARMHALTUNG = 0.10   # kWh pro Entnahme
+AUSSTOSS_OHNE_WARMHALTUNG = 0.14  # kWh pro Entnahme
+
+# Speicherverlust: 0.11 · √V  plus Zuschlag je Anschlussstutzen über 2
+SPEICHER_VERLUST_FAKTOR = 0.11  # kWh/d pro √Liter
+STUTZEN_ZUSCHLAG = 0.1          # kWh/d pro zusätzlichem Stutzen
+
