@@ -36,3 +36,23 @@ F_STO = {
     "Externer Wärmeübertrager mit Misch- und Kaltzone": 1.10,
     "Externer Wärmeübertrager ohne Misch- und Kaltzone": 1.00,
 }
+
+# Nutzungsgrad Warmwasser η_per,W für Holzfeuerungen (Handout Abb. 22, SIA 384/3:2020)
+# Schlüssel: (Abgaskondensation, modulierender Brenner)
+ETA_HOLZ_WW = {
+    "Pellets": {
+        (True, True): 0.70, (True, False): 0.65,
+        (False, True): 0.65, (False, False): 0.60,
+    },
+    "Hackschnitzel": {
+        (True, True): 0.65, (True, False): 0.60,
+        (False, True): 0.60, (False, False): 0.55,
+    },
+    "Stückholz": {  # nur ohne modulierenden Brenner
+        (True, False): 0.60, (False, False): 0.55,
+    },
+}
+
+# Umrechnung Tag -> Jahr (Handout 5.4)
+TAGE_PRO_JAHR = 365
+JAHRESFAKTOR = 0.8  # Jahresnutzungsgrad nach SIA 2024

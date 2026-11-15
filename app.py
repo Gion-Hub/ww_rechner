@@ -6,6 +6,9 @@ import streamlit as st
 from wwrechner.berechnung import (
     ausstossverlust_kwh,
     bereitschaftsvolumen_kwh,
+    endenergie_kwh,
+    endenergie_jahr_kwh,
+    ladeleistung_kw,
     speicher_genuegt,
     speicherverlust_kwh,
     speichervolumen_erforderlich_l,
@@ -15,10 +18,11 @@ from wwrechner.berechnung import (
     verbrauch_pro_stunde,
     waermebedarf_gesamt_kwh,
     waermebedarf_kwh,
+    wirkungsgrad_holz,
     zirkulationsverlust_kwh,
 )
 from wwrechner.diagramme import tagesprofil_diagramm
-from wwrechner.tabellen import F_STO, PROFIL_WOHNEN, T_KALTWASSER, T_WARMWASSER
+from wwrechner.tabellen import ETA_HOLZ_WW, F_STO, PROFIL_WOHNEN, T_KALTWASSER, T_WARMWASSER
 
 
 st.title("Warmwasser-Rechner SIA 385/2")
@@ -96,3 +100,26 @@ if speicher_genuegt(v_gewaehlt, v_erf):
     st.success(f"Erforderlich: {v_erf:.0f} l · Gewählt: {v_gewaehlt} l → Nachweis erfüllt")
 else:
     st.error(f"Erforderlich: {v_erf:.0f} l · Gewählt: {v_gewaehlt} l → Speicher zu klein, grösseren Typ wählen")
+
+
+# --- Wärmeerzeuger ---
+st.header("Wärmeerzeuger")
+ladezeit = st.number_input("Ladezeit pro Ladung [h]", min_value=0.5, max_value=12.0, value=2.0, step=0.5)
+
+brennstoff = st.selectbox("Holzfeuerung", list(ETA_HOLZ_WW.keys()))
+kondensation = st.checkbox("Mit Abgaskondensation")
+modulierend = st.checkbox("Modulierender / mehrstufiger Brenner")
+
+eta = wirkungsgrad_holz(brennstoff, kondensation, modulierend)
+
+phi_gen = ladeleistung_kw(q_gesamt, ladezyklen, ladezeit)
+st.metric("Ladeleistung ΦW,gen", f"{phi_gen:.1f} kW")
+
+if eta is None:
+    st.warning(f"{brennstoff} ist in Abb. 22 nicht mit modulierendem Brenner aufgeführt.")
+else:
+    e_tag = endenergie_kwh(q_gesamt, eta)
+    w1, w2, w3 = st.columns(3)
+    w1.metric("Nutzungsgrad η_per,W", f"{eta:.2f}")
+    w2.metric("Endenergie pro Tag", f"{e_tag:.1f} kWh/d")
+    w3.metric("Endenergie pro Jahr", f"{endenergie_jahr_kwh(e_tag):,.0f} kWh/a".replace(",", "'"))

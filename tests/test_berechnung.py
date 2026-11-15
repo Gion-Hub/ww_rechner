@@ -3,6 +3,9 @@
 from wwrechner.berechnung import (
     ausstossverlust_kwh,
     bereitschaftsvolumen_kwh,
+    endenergie_kwh,
+    endenergie_jahr_kwh,
+    ladeleistung_kw,
     speicher_genuegt,
     speicherverlust_kwh,
     speichervolumen_erforderlich_l,
@@ -12,6 +15,7 @@ from wwrechner.berechnung import (
     verbrauch_pro_stunde,
     waermebedarf_gesamt_kwh,
     waermebedarf_kwh,
+    wirkungsgrad_holz,
     zirkulationsverlust_kwh,
 )
 from wwrechner.tabellen import PROFIL_WOHNEN
@@ -87,4 +91,28 @@ def test_speichervolumen_erforderlich():
 def test_speicher_genuegt():
     assert speicher_genuegt(500, 460) is True
     assert speicher_genuegt(400, 460) is False
+
+def test_ladeleistung():
+    # 24 kWh pro Tag, 2 Ladungen, je 3 h Ladezeit -> 12 kWh / 3 h = 4 kW
+    assert round(ladeleistung_kw(24.0, 2, 3), 2) == 4.0
+
+
+def test_endenergie():
+    # 20 kWh Wärme bei Wirkungsgrad 0.8 -> 25 kWh Endenergie
+    assert round(endenergie_kwh(20.0, 0.8), 2) == 25.0
+
+def test_endenergie_handout():
+    # Handout 5.4: (18 + 10) kWh/d bei η = 0.60 -> ca. 47 kWh/d
+    assert round(endenergie_kwh(18 + 10, 0.60)) == 47
+
+
+def test_endenergie_jahr_handout():
+    # Handout 5.4: 47 kWh/d · 365 · 0.8 = 13'724 kWh/a
+    assert round(endenergie_jahr_kwh(47)) == 13724
+
+
+def test_wirkungsgrad_holz():
+    assert wirkungsgrad_holz("Pellets", False, False) == 0.60
+    assert wirkungsgrad_holz("Hackschnitzel", True, True) == 0.65
+    assert wirkungsgrad_holz("Stückholz", True, True) is None
     

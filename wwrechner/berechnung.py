@@ -4,8 +4,11 @@ from wwrechner.tabellen import (
     AUSSTOSS_MIT_WARMHALTUNG,
     AUSSTOSS_OHNE_WARMHALTUNG,
     C_WASSER,
+    ETA_HOLZ_WW,
+    JAHRESFAKTOR,
     SPEICHER_VERLUST_FAKTOR,
     STUTZEN_ZUSCHLAG,
+    TAGE_PRO_JAHR,
     VERLUST_ZIRKULATION,
 )
 
@@ -86,3 +89,23 @@ def speichervolumen_erforderlich_l(q_bereitschaft, t_speicher, t_kalt, f_sto):
 def speicher_genuegt(v_gewaehlt, v_erforderlich):
     """True, wenn der gewählte Speicher gross genug ist."""
     return v_gewaehlt >= v_erforderlich
+
+def ladeleistung_kw(q_gesamt, ladezyklen, ladezeit_h):
+    """Erforderliche Leistung des Wärmeerzeugers (ΦW,gen) in kW.
+    Pro Ladung muss q_gesamt / ladezyklen in der Ladezeit nachgeladen werden."""
+    q_pro_ladung = q_gesamt / ladezyklen
+    return q_pro_ladung / ladezeit_h
+
+
+def endenergie_kwh(q_gesamt, wirkungsgrad):
+    """Endenergie (EWW), die der Wärmeerzeuger dafür braucht, in kWh."""
+    return q_gesamt / wirkungsgrad
+
+def wirkungsgrad_holz(brennstoff, kondensation, modulierend):
+    """Nutzungsgrad η_per,W aus Abb. 22. Gibt None zurück, wenn die Kombination nicht existiert."""
+    return ETA_HOLZ_WW[brennstoff].get((kondensation, modulierend))
+
+
+def endenergie_jahr_kwh(e_tag):
+    """Endenergie pro Jahr in kWh (Tageswert · 365 · 0.8)."""
+    return e_tag * TAGE_PRO_JAHR * JAHRESFAKTOR
