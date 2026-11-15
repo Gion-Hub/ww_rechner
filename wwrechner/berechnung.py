@@ -13,6 +13,9 @@ from wwrechner.tabellen import (
 )
 
 
+# =====================================================================
+# ① Bedarf
+# =====================================================================
 
 def tagesbedarf_liter(personen, liter_pro_person):
     """Tagesbedarf an Warmwasser in Litern."""
@@ -40,8 +43,16 @@ def spitzenstunde(stunden_liter):
     return stunde, maximum
 
 
+# =====================================================================
+# ② Grobauslegung (Vorprojekt)
+# =====================================================================
 
-# --- Stundenspitze und Verluste (SIA 385/2) ---
+# Folgt: Speicherabschätzung, Warmhaltekonzepte, Verlustzahl ξ, Ausstosszeiten
+
+
+# =====================================================================
+# ③ Feinauslegung (Bauprojekt)
+# =====================================================================
 
 def stundenspitze_anteil(personen):
     """Anteil des Tagesbedarfs, der in der stärksten Stunde gezapft wird (0.30 = 30 %)."""
@@ -74,8 +85,6 @@ def speicherverlust_kwh(volumen_l, stutzen=2):
     return SPEICHER_VERLUST_FAKTOR * volumen_l**0.5 + STUTZEN_ZUSCHLAG * (stutzen - 2)
 
 
-# --- Feinauslegung ---
-
 def waermebedarf_gesamt_kwh(q_nutz, q_speicher, q_zirkulation, q_ausstoss):
     """Wärme, die der Wärmeerzeuger pro Tag liefern muss (QW,gen,out), in kWh."""
     return q_nutz + q_speicher + q_zirkulation + q_ausstoss
@@ -85,6 +94,7 @@ def bereitschaftsvolumen_kwh(q_nutz, spitze_anteil, q_gesamt, ladezyklen):
     """Wärmemenge, die der Speicher bereithalten muss (QW,sto,cont), in kWh."""
     q_spitze = q_nutz * spitze_anteil          # Stundenspitze QW,pk
     return q_spitze + q_gesamt / ladezyklen
+
 
 def speichervolumen_erforderlich_l(q_bereitschaft, t_speicher, t_kalt, f_sto):
     """Erforderliches Speichervolumen in Litern (VW,sto)."""
@@ -96,6 +106,11 @@ def speicher_genuegt(v_gewaehlt, v_erforderlich):
     """True, wenn der gewählte Speicher gross genug ist."""
     return v_gewaehlt >= v_erforderlich
 
+
+# =====================================================================
+# ④ Wärmeerzeuger
+# =====================================================================
+
 def ladeleistung_kw(q_gesamt, ladezyklen, ladezeit_h):
     """Erforderliche Leistung des Wärmeerzeugers (ΦW,gen) in kW.
     Pro Ladung muss q_gesamt / ladezyklen in der Ladezeit nachgeladen werden."""
@@ -103,13 +118,14 @@ def ladeleistung_kw(q_gesamt, ladezyklen, ladezeit_h):
     return q_pro_ladung / ladezeit_h
 
 
-def endenergie_kwh(q_gesamt, wirkungsgrad):
-    """Endenergie (EWW), die der Wärmeerzeuger dafür braucht, in kWh."""
-    return q_gesamt / wirkungsgrad
-
 def wirkungsgrad_holz(brennstoff, kondensation, modulierend):
     """Nutzungsgrad η_per,W aus Abb. 22. Gibt None zurück, wenn die Kombination nicht existiert."""
     return ETA_HOLZ_WW[brennstoff].get((kondensation, modulierend))
+
+
+def endenergie_kwh(q_gesamt, wirkungsgrad):
+    """Endenergie (EWW), die der Wärmeerzeuger dafür braucht, in kWh."""
+    return q_gesamt / wirkungsgrad
 
 
 def endenergie_jahr_kwh(e_tag):

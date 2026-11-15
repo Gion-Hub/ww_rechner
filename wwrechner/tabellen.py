@@ -1,5 +1,10 @@
 """Konstanten und Normwerte. Nur Daten, keine Berechnungen."""
 
+
+# =====================================================================
+# Allgemein
+# =====================================================================
+
 # Physik
 C_WASSER = 1.163  # Wh pro Liter und Kelvin
 
@@ -7,6 +12,10 @@ C_WASSER = 1.163  # Wh pro Liter und Kelvin
 T_WARMWASSER = 60  # °C
 T_KALTWASSER = 10  # °C
 
+
+# =====================================================================
+# ① Bedarf
+# =====================================================================
 
 # Nutzungsprofil Wohnungsbau Mo-Fr nach SIA 385/2
 # Anteil am Tagesbedarf in Prozent, je Stunde von 00-01 Uhr bis 23-24 Uhr
@@ -18,7 +27,17 @@ PROFIL_WOHNEN = [
 ]
 
 
-# --- Verluste nach SIA 385/2 ---
+# =====================================================================
+# ② Grobauslegung (Vorprojekt)
+# =====================================================================
+
+# Folgt: Kennwerte Warmhaltekonzepte, Pumpe, Grenz- und Zielwert Verlustzahl ξ
+
+
+# =====================================================================
+# ③ Feinauslegung (Bauprojekt)
+# =====================================================================
+
 # Zirkulation: Wärmeverlust pro Meter Leitung und Tag
 VERLUST_ZIRKULATION = 0.12  # kWh/(m·d), konventionelle Zirkulation
 
@@ -40,6 +59,11 @@ F_STO = {
     "Externer Wärmeübertrager mit Misch- und Kaltzone": 1.10,
     "Externer Wärmeübertrager ohne Misch- und Kaltzone": 1.00,
 }
+
+
+# =====================================================================
+# ④ Wärmeerzeuger
+# =====================================================================
 
 # Nutzungsgrad Warmwasser η_per,W für Holzfeuerungen (Handout Abb. 22, SIA 384/3:2020)
 # Schlüssel: (Abgaskondensation, modulierender Brenner)

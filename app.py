@@ -71,7 +71,7 @@ with tab_bedarf:
         index=["Verbrauch [l/h]"],
         columns=[f"{h:02d}" for h in range(24)],
     )
-    st.dataframe(tabelle.round(0), use_container_width=True)
+    st.dataframe(tabelle.round(0), width="stretch")
 
 
 # =====================================================================
