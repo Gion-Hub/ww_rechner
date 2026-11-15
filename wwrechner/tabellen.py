@@ -30,3 +30,9 @@ AUSSTOSS_OHNE_WARMHALTUNG = 0.14  # kWh pro Entnahme
 SPEICHER_VERLUST_FAKTOR = 0.11  # kWh/d pro √Liter
 STUTZEN_ZUSCHLAG = 0.1          # kWh/d pro zusätzlichem Stutzen
 
+# Faktor f_sto je nach Ladeart des Speichers (Handout, Abb. 21)
+F_STO = {
+    "Innenliegender Wärmeübertrager": 1.25,
+    "Externer Wärmeübertrager mit Misch- und Kaltzone": 1.10,
+    "Externer Wärmeübertrager ohne Misch- und Kaltzone": 1.00,
+}

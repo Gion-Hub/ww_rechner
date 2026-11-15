@@ -2,11 +2,15 @@
 
 from wwrechner.berechnung import (
     ausstossverlust_kwh,
+    bereitschaftsvolumen_kwh,
+    speicher_genuegt,
     speicherverlust_kwh,
+    speichervolumen_erforderlich_l,
     spitzenstunde,
     stundenspitze_anteil,
     tagesbedarf_liter,
     verbrauch_pro_stunde,
+    waermebedarf_gesamt_kwh,
     waermebedarf_kwh,
     zirkulationsverlust_kwh,
 )
@@ -65,3 +69,22 @@ def test_ausstossverlust_mit_und_ohne_warmhaltung():
 def test_speicherverlust_1000_liter():
     assert round(speicherverlust_kwh(1000), 2) == 3.48
     assert round(speicherverlust_kwh(1000, stutzen=6), 2) == 3.88
+
+
+def test_waermebedarf_gesamt():
+    assert waermebedarf_gesamt_kwh(10.0, 2.46, 6.0, 2.2) == 20.66
+
+
+def test_bereitschaftsvolumen():
+    # 10 kWh Nutzwärme, 30 % Spitze, 20.66 kWh gesamt, 2 Ladungen pro Tag
+    assert round(bereitschaftsvolumen_kwh(10.0, 0.30, 20.66, 2), 2) == 13.33
+
+def test_speichervolumen_erforderlich():
+    # 13.33 kWh, 60 °C / 10 °C, f_sto = 1.0
+    assert round(speichervolumen_erforderlich_l(13.33, 60, 10, 1.0), 1) == 229.2
+
+
+def test_speicher_genuegt():
+    assert speicher_genuegt(500, 460) is True
+    assert speicher_genuegt(400, 460) is False
+    

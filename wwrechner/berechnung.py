@@ -63,3 +63,26 @@ def ausstossverlust_kwh(wohnungen, mit_warmhaltung):
 def speicherverlust_kwh(volumen_l, stutzen=2):
     """Bereitschaftsverlust des Speichers pro Tag in kWh."""
     return SPEICHER_VERLUST_FAKTOR * volumen_l**0.5 + STUTZEN_ZUSCHLAG * (stutzen - 2)
+
+
+# --- Feinauslegung ---
+
+def waermebedarf_gesamt_kwh(q_nutz, q_speicher, q_zirkulation, q_ausstoss):
+    """Wärme, die der Wärmeerzeuger pro Tag liefern muss (QW,gen,out), in kWh."""
+    return q_nutz + q_speicher + q_zirkulation + q_ausstoss
+
+
+def bereitschaftsvolumen_kwh(q_nutz, spitze_anteil, q_gesamt, ladezyklen):
+    """Wärmemenge, die der Speicher bereithalten muss (QW,sto,cont), in kWh."""
+    q_spitze = q_nutz * spitze_anteil          # Stundenspitze QW,pk
+    return q_spitze + q_gesamt / ladezyklen
+
+def speichervolumen_erforderlich_l(q_bereitschaft, t_speicher, t_kalt, f_sto):
+    """Erforderliches Speichervolumen in Litern (VW,sto)."""
+    kwh_pro_liter = C_WASSER / 1000 * (t_speicher - t_kalt)
+    return q_bereitschaft / kwh_pro_liter * f_sto
+
+
+def speicher_genuegt(v_gewaehlt, v_erforderlich):
+    """True, wenn der gewählte Speicher gross genug ist."""
+    return v_gewaehlt >= v_erforderlich
