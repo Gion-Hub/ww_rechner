@@ -39,7 +39,11 @@ tab_bedarf, tab_grob, tab_fein, tab_erzeuger = st.tabs(
 # =====================================================================
 with tab_bedarf:
     st.header("Warmwasserbedarf")
-
+    st.info(
+    "- Ausgangspunkt jeder Auslegung: Wie viel Warmwasser braucht das Gebäude pro Tag?\n"
+    "- Aus Nutzung und Belegung ergeben sich Tagesbedarf, Wärmebedarf und Tagesprofil.\n"
+    "- Die Werte fliessen in die Grob- und Feinauslegung ein."
+    )
     links, rechts = st.columns(2)
     with links:
         st.subheader("Nutzung")
@@ -79,6 +83,12 @@ with tab_bedarf:
 # =====================================================================
 with tab_grob:
     st.header("Grobauslegung (Vorprojekt)")
+    st.info(
+    "- Erste Abschätzung mit vereinfachten Kennwerten und wenigen Eingaben.\n"
+    "- Vergleich der Warmhaltekonzepte über die Verlustzahl ξ und Kontrolle der Ausstosszeiten.\n"
+    "- Ergebnis: Systementscheid als Grundlage für die Feinauslegung."
+    )
+    st.caption("In Arbeit")
     st.info("In Arbeit: Speicherabschätzung, Warmhaltekonzepte, Verlustzahl ξ und Ausstosszeiten.")
 
 
@@ -87,6 +97,11 @@ with tab_grob:
 # =====================================================================
 with tab_fein:
     st.header("Feinauslegung (Bauprojekt)")
+    st.info(
+    "- Baut auf dem in der Grobauslegung gewählten System auf.\n"
+    "- Detaillierte Wärmebilanz: Nutzwärme plus Speicher-, Leitungs- und Ausstossverluste.\n"
+    "- Bestimmung von Stundenspitze, Ladestrategie und Speichervolumen mit Nachweis."
+    )
 
     links, rechts = st.columns(2)
     with links:
@@ -135,6 +150,11 @@ with tab_fein:
 # =====================================================================
 with tab_erzeuger:
     st.header("Wärmeerzeuger")
+    st.info(
+    "- Übernimmt Wärmebedarf und Ladestrategie aus der Feinauslegung.\n"
+    "- Bestimmt die erforderliche Ladeleistung.\n"
+    "- Vergleicht Wärmeerzeuger über Nutzungsgrad und Endenergie pro Tag und Jahr."
+    )
 
     links, rechts = st.columns(2)
     with links:
