@@ -104,7 +104,7 @@ with tab_fein:
     anteil = stundenspitze_anteil(personen)
     spitze_liter = bedarf * anteil
     q_zirk = zirkulationsverlust_kwh(zirk_laenge)
-    q_ausstoss = ausstossverlust_kwh(wohnungen, warmhaltung)
+    q_ausstoss = ausstossverlust_kwh(wohnungen, personen / wohnungen, warmhaltung)
     q_speicher = speicherverlust_kwh(v_gewaehlt)
     q_gesamt = waermebedarf_gesamt_kwh(energie, q_speicher, q_zirk, q_ausstoss)
     q_bereit = bereitschaftsvolumen_kwh(energie, anteil, q_gesamt, ladezyklen)

@@ -65,9 +65,9 @@ def test_zirkulationsverlust():
     assert zirkulationsverlust_kwh(50) == 6.0
 
 
-def test_ausstossverlust_mit_und_ohne_warmhaltung():
-    assert round(ausstossverlust_kwh(4, True), 2) == 2.2
-    assert round(ausstossverlust_kwh(4, False), 2) == 3.08
+def test_ausstossverlust_handout():
+    # Handout 5.1.4: 2 WE à 3.1 Personen, mit Warmhaltung -> 1.99 kWh/WE, total 3.98 kWh/d
+    assert round(ausstossverlust_kwh(2, 3.1, True), 2) == 3.98
 
 
 def test_speicherverlust_1000_liter():
@@ -115,4 +115,3 @@ def test_wirkungsgrad_holz():
     assert wirkungsgrad_holz("Pellets", False, False) == 0.60
     assert wirkungsgrad_holz("Hackschnitzel", True, True) == 0.65
     assert wirkungsgrad_holz("Stückholz", True, True) is None
-    

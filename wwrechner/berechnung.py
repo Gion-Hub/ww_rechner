@@ -1,8 +1,8 @@
 """Formeln für die Warmwasser-Auslegung. Jede Funktion bekommt Werte und gibt ein Ergebnis zurück."""
 
 from wwrechner.tabellen import (
-    AUSSTOSS_MIT_WARMHALTUNG,
-    AUSSTOSS_OHNE_WARMHALTUNG,
+    AUSSTOSS_10S,
+    AUSSTOSS_15S,
     C_WASSER,
     ETA_HOLZ_WW,
     JAHRESFAKTOR,
@@ -55,12 +55,18 @@ def zirkulationsverlust_kwh(leitungslaenge_m):
     return leitungslaenge_m * VERLUST_ZIRKULATION
 
 
-def ausstossverlust_kwh(wohnungen, mit_warmhaltung):
-    """Ausstossverluste Wohnen pro Tag in kWh. Entnahmen pro Tag = 2 + 5 × Wohnungen."""
-    entnahmen = 2 + 5 * wohnungen
-    if mit_warmhaltung:
-        return entnahmen * AUSSTOSS_MIT_WARMHALTUNG
-    return entnahmen * AUSSTOSS_OHNE_WARMHALTUNG
+def ausstossverlust_kwh(wohnungen, personen_pro_we, mit_warmhaltung):
+    """Ausstosswärmeverluste Wohnen pro Tag in kWh (Handout 5.1.4)."""
+    werte = AUSSTOSS_10S if mit_warmhaltung else AUSSTOSS_15S
+    entnahmen_dusche = personen_pro_we
+    entnahmen_spueltisch = 6 + 2 * personen_pro_we
+    entnahmen_waschtisch = 3 + 2 * personen_pro_we
+    pro_wohnung = (
+        entnahmen_dusche * werte["dusche"]
+        + entnahmen_spueltisch * werte["spueltisch"]
+        + entnahmen_waschtisch * werte["waschtisch"]
+    )
+    return wohnungen * pro_wohnung
 
 
 def speicherverlust_kwh(volumen_l, stutzen=2):

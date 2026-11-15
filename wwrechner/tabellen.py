@@ -22,9 +22,13 @@ PROFIL_WOHNEN = [
 # Zirkulation: Wärmeverlust pro Meter Leitung und Tag
 VERLUST_ZIRKULATION = 0.12  # kWh/(m·d), konventionelle Zirkulation
 
-# Ausstossverluste Wohnen: Wärme pro Zapfung, bis das Wasser warm kommt
-AUSSTOSS_MIT_WARMHALTUNG = 0.10   # kWh pro Entnahme
-AUSSTOSS_OHNE_WARMHALTUNG = 0.14  # kWh pro Entnahme
+# Ausstossverluste Wohnen pro Entnahme in kWh (Handout Abb. 19)
+# 10 s = mit Warmhaltung, 15 s = ohne Warmhaltung
+# Verlust hängt vom Leitungsinhalt ab: Armaturen mit grösserem Durchfluss
+# (Dusche, Spültisch 0.2 l/s) dürfen bei gleicher Ausstosszeit mehr Inhalt haben
+# als der Waschtisch (0.1 l/s) -> mehr Wasser kühlt nach jeder Entnahme aus.
+AUSSTOSS_10S = {"dusche": 0.10, "spueltisch": 0.10, "waschtisch": 0.05}
+AUSSTOSS_15S = {"dusche": 0.15, "spueltisch": 0.14, "waschtisch": 0.08}
 
 # Speicherverlust: 0.11 · √V  plus Zuschlag je Anschlussstutzen über 2
 SPEICHER_VERLUST_FAKTOR = 0.11  # kWh/d pro √Liter
