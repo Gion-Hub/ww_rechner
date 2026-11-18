@@ -15,6 +15,7 @@ from wwrechner.berechnung import (
     stundenspitze_anteil,
     tagesbedarf_liter,
     tagesvolumen_grob_l,
+    warmhaltekonzept_auswerten,
     verbrauch_pro_stunde,
     waermebedarf_gesamt_kwh,
     waermebedarf_grob_kwh,
@@ -84,6 +85,26 @@ def test_speicherverlust_grob_handout():
     # Zielwert Dämmung: Faktor 0.73
     assert round(speicherverlust_kwh(400, 5, 0.73), 3) == 1.825
 
+
+
+def test_verlustzahl_handout_konzept_a():
+    # Handout 4.2.3: 2 WE, je 10 m VL + 10 m RL, Q'sto 2.5, Q'W 14.4 -> ξ = 57.3 %
+    r = warmhaltekonzept_auswerten("A: Konventionelle Zirkulation", 2, 10, 10, 2.5, 14.4, "Grenzwert")
+    assert round(r["q_warmhaltung"], 1) == 4.8
+    assert r["pumpe_w"] == 16
+    assert abs(r["xi"] - 0.573) < 0.001  # Handout: 57.3 %
+
+
+def test_verlustzahl_handout_konzept_b():
+    r = warmhaltekonzept_auswerten("B: Rohr-an-Rohr", 2, 10, 10, 2.5, 14.4, "Grenzwert")
+    assert round(r["q_warmhaltung"], 1) == 3.0
+    assert abs(r["xi"] - 0.448) < 0.001  # Handout: 44.8 %
+
+
+def test_verlustzahl_handout_konzept_c():
+    r = warmhaltekonzept_auswerten("C: Warmhalteband", 2, 10, 10, 2.5, 14.4, "Grenzwert")
+    assert round(r["e_hilf"], 1) == 1.6
+    assert abs(r["xi"] - 0.507) < 0.001  # Handout: 50.7 %
 
 # =====================================================================
 # ③ Feinauslegung (Bauprojekt)

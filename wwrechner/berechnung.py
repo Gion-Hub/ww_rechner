@@ -7,12 +7,16 @@ from wwrechner.tabellen import (
     BEZUGSFLAECHE,
     C_WASSER,
     ETA_HOLZ_WW,
+    GEWICHTUNG_HILFSENERGIE,
+    HILFSENERGIE_BAND,
     JAHRESFAKTOR,
     KWH_PRO_LITER,
+    PUMPE,
     SPEICHER_VERLUST_FAKTOR,
     STUTZEN_ZUSCHLAG,
     TAGE_PRO_JAHR,
     VERLUST_ZIRKULATION,
+    WARMHALTEKONZEPTE,
     ZUSCHLAG_VERLUSTE_GROB,
 )
 
@@ -69,6 +73,49 @@ def tagesvolumen_grob_l(q_grob):
 def aufrunden(wert, schritt=100):
     """Rundet auf den nächsten Schritt auf, z. B. 372 l -> 400 l."""
     return math.ceil(wert / schritt) * schritt
+
+
+
+def leitungslaenge_m(wohnungen, vorlauf_pro_we, ruecklauf_pro_we, mit_ruecklauf):
+    """Warm gehaltene Leitungslänge im ganzen Gebäude in m."""
+    pro_we = vorlauf_pro_we + (ruecklauf_pro_we if mit_ruecklauf else 0)
+    return wohnungen * pro_we
+
+
+def pumpenleistung_w(laenge_m, ansatz):
+    """Elektrische Nennleistung der Umwälzpumpe in W (Grenz- oder Zielwert)."""
+    werte = PUMPE[ansatz]
+    return werte["grund_w"] + werte["pro_m_w"] * laenge_m
+
+
+def verlustzahl(q_speicher, q_warmhaltung, e_hilf, f_hl, q_nutz):
+    """Warmwasser-Verlustzahl ξ_ls (0.5 = 50 %)."""
+    return (q_speicher + f_hl * q_warmhaltung + GEWICHTUNG_HILFSENERGIE * e_hilf) / q_nutz
+
+
+def warmhaltekonzept_auswerten(konzept, wohnungen, vorlauf_pro_we, ruecklauf_pro_we,
+                               q_speicher, q_nutz, pumpenansatz):
+    """Rechnet ein Warmhaltekonzept durch. Gibt alle Zwischenwerte als Dictionary zurück."""
+    k = WARMHALTEKONZEPTE[konzept]
+    laenge = leitungslaenge_m(wohnungen, vorlauf_pro_we, ruecklauf_pro_we, k["mit_ruecklauf"])
+    q_hl = laenge * k["verlust"]
+
+    if k["pumpe"]:
+        # Handout: Pumpe immer mit Vor- und Rücklauflänge
+        laenge_pumpe = leitungslaenge_m(wohnungen, vorlauf_pro_we, ruecklauf_pro_we, True)
+        p_pumpe = pumpenleistung_w(laenge_pumpe, pumpenansatz)
+        e_hilf = p_pumpe * 24 / 1000
+    else:
+        p_pumpe = 0
+        e_hilf = HILFSENERGIE_BAND * q_hl
+
+    return {
+        "laenge_m": laenge,
+        "q_warmhaltung": q_hl,
+        "pumpe_w": p_pumpe,
+        "e_hilf": e_hilf,
+        "xi": verlustzahl(q_speicher, q_hl, e_hilf, k["f_hl"], q_nutz),
+    }
 
 # =====================================================================
 # ③ Feinauslegung (Bauprojekt)

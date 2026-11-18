@@ -54,6 +54,29 @@ DAEMMUNG_SPEICHER = {
 }
 
 
+# Warmhaltekonzepte (Handout 4.2.3)
+# verlust:       linearer Wärmeverlust in kWh/(m·d)
+# mit_ruecklauf: True = Vor- und Rücklauf zählen (nur konventionelle Zirkulation)
+# pumpe:         True = Umwälzpumpe, False = elektrisches Warmhalteband
+# f_hl:          Gewichtung der Wärmeverluste in der Verlustzahl
+WARMHALTEKONZEPTE = {
+    "A: Konventionelle Zirkulation": {"verlust": 0.12, "mit_ruecklauf": True, "pumpe": True, "f_hl": 1.0},
+    "B: Rohr-an-Rohr": {"verlust": 0.15, "mit_ruecklauf": False, "pumpe": True, "f_hl": 1.0},
+    "C: Warmhalteband": {"verlust": 0.12, "mit_ruecklauf": False, "pumpe": False, "f_hl": 0.333},
+}
+
+# Elektrische Leistung Umwälzpumpe: Grundleistung + Leistung pro Meter Leitung (SIA 385/1)
+PUMPE = {
+    "Grenzwert": {"grund_w": 8, "pro_m_w": 0.20},
+    "Zielwert": {"grund_w": 5, "pro_m_w": 0.16},
+}
+
+HILFSENERGIE_BAND = 2 / 3          # Warmhalteband: Hilfsenergie = 2/3 der Wärmeverluste
+GEWICHTUNG_HILFSENERGIE = 2.5      # Strom zählt in der Verlustzahl 2.5-fach
+VERLUSTZAHL_GRENZWERT = 0.50       # ξ_ls ≤ 50 %
+VERLUSTZAHL_ZIELWERT = 0.40        # ξ_ls ≤ 40 %
+
+
 # =====================================================================
 # ③ Feinauslegung (Bauprojekt)
 # =====================================================================

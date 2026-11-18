@@ -22,6 +22,7 @@ from wwrechner.berechnung import (
     waermebedarf_gesamt_kwh,
     waermebedarf_grob_kwh,
     waermebedarf_kwh,
+    warmhaltekonzept_auswerten,
     wirkungsgrad_holz,
     zirkulationsverlust_kwh,
 )
@@ -32,9 +33,13 @@ from wwrechner.tabellen import (
     ETA_HOLZ_WW,
     F_STO,
     PROFIL_WOHNEN,
+    PUMPE,
     T_KALTWASSER,
     T_WARMWASSER,
+    VERLUSTZAHL_GRENZWERT,
+    VERLUSTZAHL_ZIELWERT,
     WAERMEBEDARF_GROB,
+    WARMHALTEKONZEPTE,
 )
 
 st.set_page_config(page_title="Warmwasser-Rechner SIA 385/2", layout="wide")
@@ -143,7 +148,41 @@ with tab_grob:
     g3.metric("Tagesvolumen V_W,d", f"{v_tag:.0f} l/d")
     g4.metric("Speicherverlust Q'W,sto,ls", f"{q_sto_grob:.1f} kWh/d")
 
-    st.caption("Folgt: Warmhaltekonzepte mit Verlustzahl ξ und Ausstosszeiten.")
+    # --- Warmhaltekonzepte und Verlustzahl ---
+    st.subheader("Warmhaltekonzepte und Verlustzahl ξ")
+    links, rechts = st.columns(2)
+    with links:
+        vorlauf_we = st.number_input("Vorlauf pro Wohnung l_WWV [m]", min_value=0.0, max_value=500.0, value=10.0, step=1.0)
+        ruecklauf_we = st.number_input("Rücklauf pro Wohnung l_WWR [m]", min_value=0.0, max_value=500.0, value=10.0, step=1.0,
+                                       help="Zählt nur bei konventioneller Zirkulation")
+    with rechts:
+        pumpenansatz = st.radio("Pumpenleistung", list(PUMPE.keys()), horizontal=True)
+
+    zeilen = []
+    for konzept in WARMHALTEKONZEPTE:
+        r = warmhaltekonzept_auswerten(konzept, wohnungen, vorlauf_we, ruecklauf_we,
+                                       q_sto_grob, q_grob, pumpenansatz)
+        zeilen.append({
+            "Konzept": konzept,
+            "Länge [m]": r["laenge_m"],
+            "Q'W,hl,ls [kWh/d]": r["q_warmhaltung"],
+            "Pumpe [W]": r["pumpe_w"],
+            "E'W,aux [kWh/d]": r["e_hilf"],
+            "ξ [%]": r["xi"] * 100,
+            "Grenzwert 50 %": "✓" if r["xi"] <= VERLUSTZAHL_GRENZWERT else "✗",
+            "Zielwert 40 %": "✓" if r["xi"] <= VERLUSTZAHL_ZIELWERT else "✗",
+        })
+    vergleich = pd.DataFrame(zeilen)
+    st.dataframe(vergleich.round(2), hide_index=True, width="stretch")
+
+    konzept_gewaehlt = st.selectbox(
+        "Gewähltes Warmhaltekonzept (für die Feinauslegung)", list(WARMHALTEKONZEPTE.keys()),
+        index=int(vergleich["ξ [%]"].idxmin()),
+        help="Vorgewählt ist das Konzept mit der kleinsten Verlustzahl",
+    )
+
+    st.caption("Folgt: Ausstosszeiten.")
+
 
 # =====================================================================
 # ③ Feinauslegung (Bauprojekt)
