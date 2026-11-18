@@ -1,15 +1,19 @@
 """Formeln für die Warmwasser-Auslegung. Jede Funktion bekommt Werte und gibt ein Ergebnis zurück."""
+import math
 
 from wwrechner.tabellen import (
     AUSSTOSS_10S,
     AUSSTOSS_15S,
+    BEZUGSFLAECHE,
     C_WASSER,
     ETA_HOLZ_WW,
     JAHRESFAKTOR,
+    KWH_PRO_LITER,
     SPEICHER_VERLUST_FAKTOR,
     STUTZEN_ZUSCHLAG,
     TAGE_PRO_JAHR,
     VERLUST_ZIRKULATION,
+    ZUSCHLAG_VERLUSTE_GROB,
 )
 
 
@@ -47,8 +51,24 @@ def spitzenstunde(stunden_liter):
 # ② Grobauslegung (Vorprojekt)
 # =====================================================================
 
-# Folgt: Speicherabschätzung, Warmhaltekonzepte, Verlustzahl ξ, Ausstosszeiten
+def normbelegung(flaeche_m2):
+    """Personen pro Wohnung nach Fläche (Normbelegung SIA 385/2)."""
+    return 3.3 - 2 / (1 + (flaeche_m2 / BEZUGSFLAECHE) ** 3)
 
+
+def waermebedarf_grob_kwh(personen, kwh_pro_person):
+    """Wärmebedarf Warmwasser Q'_W für die Grobauslegung in kWh/d."""
+    return personen * kwh_pro_person
+
+
+def tagesvolumen_grob_l(q_grob):
+    """Täglich bereitzustellendes Warmwasservolumen V_W,d in Litern, inkl. +50 % Verluste."""
+    return q_grob * ZUSCHLAG_VERLUSTE_GROB / KWH_PRO_LITER
+
+
+def aufrunden(wert, schritt=100):
+    """Rundet auf den nächsten Schritt auf, z. B. 372 l -> 400 l."""
+    return math.ceil(wert / schritt) * schritt
 
 # =====================================================================
 # ③ Feinauslegung (Bauprojekt)
@@ -80,9 +100,10 @@ def ausstossverlust_kwh(wohnungen, personen_pro_we, mit_warmhaltung):
     return wohnungen * pro_wohnung
 
 
-def speicherverlust_kwh(volumen_l, stutzen=2):
+def speicherverlust_kwh(volumen_l, stutzen=2, daemmfaktor=1.0):
     """Bereitschaftsverlust des Speichers pro Tag in kWh."""
-    return SPEICHER_VERLUST_FAKTOR * volumen_l**0.5 + STUTZEN_ZUSCHLAG * (stutzen - 2)
+    verlust = SPEICHER_VERLUST_FAKTOR * volumen_l**0.5 + STUTZEN_ZUSCHLAG * (stutzen - 2)
+    return verlust * daemmfaktor
 
 
 def waermebedarf_gesamt_kwh(q_nutz, q_speicher, q_zirkulation, q_ausstoss):

@@ -4,26 +4,38 @@ import pandas as pd
 import streamlit as st
 
 from wwrechner.berechnung import (
+    aufrunden,
     ausstossverlust_kwh,
     bereitschaftsvolumen_kwh,
     endenergie_kwh,
     endenergie_jahr_kwh,
     ladeleistung_kw,
+    normbelegung,
     speicher_genuegt,
     speicherverlust_kwh,
     speichervolumen_erforderlich_l,
     spitzenstunde,
     stundenspitze_anteil,
     tagesbedarf_liter,
+    tagesvolumen_grob_l,
     verbrauch_pro_stunde,
     waermebedarf_gesamt_kwh,
+    waermebedarf_grob_kwh,
     waermebedarf_kwh,
     wirkungsgrad_holz,
     zirkulationsverlust_kwh,
 )
 from wwrechner.diagramme import tagesprofil_diagramm
-from wwrechner.tabellen import ETA_HOLZ_WW, F_STO, PROFIL_WOHNEN, T_KALTWASSER, T_WARMWASSER
 
+from wwrechner.tabellen import (
+    DAEMMUNG_SPEICHER,
+    ETA_HOLZ_WW,
+    F_STO,
+    PROFIL_WOHNEN,
+    T_KALTWASSER,
+    T_WARMWASSER,
+    WAERMEBEDARF_GROB,
+)
 
 st.set_page_config(page_title="Warmwasser-Rechner SIA 385/2", layout="wide")
 st.title("Warmwasser-Rechner SIA 385/2")
@@ -88,9 +100,50 @@ with tab_grob:
     "- Vergleich der Warmhaltekonzepte über die Verlustzahl ξ und Kontrolle der Ausstosszeiten.\n"
     "- Ergebnis: Systementscheid als Grundlage für die Feinauslegung."
     )
-    st.caption("In Arbeit")
-    st.info("In Arbeit: Speicherabschätzung, Warmhaltekonzepte, Verlustzahl ξ und Ausstosszeiten.")
 
+
+    # --- Belegung und Wärmebedarf ---
+    st.subheader("Belegung und Wärmebedarf")
+    links, rechts = st.columns(2)
+    with links:
+        nutzung_grob = st.selectbox("Nutzung (Abb. 13)", list(WAERMEBEDARF_GROB.keys()))
+        belegung = st.radio("Personen bestimmen", ["Normbelegung aus Fläche", "Direkt eingeben"], horizontal=True)
+    with rechts:
+        if belegung == "Normbelegung aus Fläche":
+            flaeche_we = st.number_input("Fläche pro Wohnung A_NF [m²]", min_value=20, max_value=1000, value=200, step=10)
+            personen_pro_we = round(normbelegung(flaeche_we), 1)
+            personen_grob = personen_pro_we * wohnungen
+            st.caption(f"Normbelegung: {personen_pro_we} P/WE × {wohnungen} WE = {personen_grob:.1f} P")
+            if nutzung_grob == "Büro":
+                st.warning("Die Normbelegung gilt nur für Wohnungen. Für Büros Personen direkt eingeben.")
+        else:
+            personen_grob = st.number_input("Anzahl Personen", min_value=0.0, max_value=5000.0, value=float(personen), step=1.0)
+
+    q_grob = waermebedarf_grob_kwh(personen_grob, WAERMEBEDARF_GROB[nutzung_grob])
+    v_tag = tagesvolumen_grob_l(q_grob)
+
+    # --- Speicher (Abschätzung) ---
+    st.subheader("Speicher (Abschätzung)")
+    links, rechts = st.columns(2)
+    with links:
+        v_grob = st.number_input(
+            "Angenommenes Speichervolumen [l]", min_value=50, max_value=20000,
+            value=aufrunden(v_tag), step=50, help="Startwert: V_W,d auf 100 l aufgerundet",
+        )
+        stutzen_grob = st.number_input("Wasserführende Stutzen n_cp", min_value=2, max_value=10, value=5)
+    with rechts:
+        daemmung = st.radio("Speicherdämmung", list(DAEMMUNG_SPEICHER.keys()), horizontal=True)
+
+    q_sto_grob = speicherverlust_kwh(v_grob, stutzen_grob, DAEMMUNG_SPEICHER[daemmung])
+
+    st.divider()
+    g1, g2, g3, g4 = st.columns(4)
+    g1.metric("Personen n_P", f"{personen_grob:.1f}")
+    g2.metric("Wärmebedarf Q'W", f"{q_grob:.1f} kWh/d")
+    g3.metric("Tagesvolumen V_W,d", f"{v_tag:.0f} l/d")
+    g4.metric("Speicherverlust Q'W,sto,ls", f"{q_sto_grob:.1f} kWh/d")
+
+    st.caption("Folgt: Warmhaltekonzepte mit Verlustzahl ξ und Ausstosszeiten.")
 
 # =====================================================================
 # ③ Feinauslegung (Bauprojekt)

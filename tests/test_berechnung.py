@@ -1,19 +1,23 @@
 """Automatische Tests für berechnung.py. Ausführen mit: pytest"""
 
 from wwrechner.berechnung import (
+    aufrunden,
     ausstossverlust_kwh,
     bereitschaftsvolumen_kwh,
     endenergie_kwh,
     endenergie_jahr_kwh,
     ladeleistung_kw,
+    normbelegung,
     speicher_genuegt,
     speicherverlust_kwh,
     speichervolumen_erforderlich_l,
     spitzenstunde,
     stundenspitze_anteil,
     tagesbedarf_liter,
+    tagesvolumen_grob_l,
     verbrauch_pro_stunde,
     waermebedarf_gesamt_kwh,
+    waermebedarf_grob_kwh,
     waermebedarf_kwh,
     wirkungsgrad_holz,
     zirkulationsverlust_kwh,
@@ -58,7 +62,27 @@ def test_spitzenstunde_morgens_um_8():
 # ② Grobauslegung (Vorprojekt)
 # =====================================================================
 
-# Folgt: Tests Grobauslegung gegen Handout
+def test_normbelegung_handout():
+    # Handout 4.2.1: 200 m² pro Wohnung -> 3.08 Personen (gerundet 3.1)
+    assert round(normbelegung(200), 2) == 3.08
+
+
+def test_waermebedarf_grob_handout():
+    # Handout 4.2.1: 6.2 Personen x 2.32 kWh/(P·d) = 14.4 kWh/d
+    assert round(waermebedarf_grob_kwh(6.2, 2.32), 1) == 14.4
+
+
+def test_tagesvolumen_grob_handout():
+    # Handout 4.2.2: 14.4 kWh/d x 1.5 / 0.058 = 372 l/d -> gewählt 400 l
+    assert round(tagesvolumen_grob_l(14.4)) == 372
+    assert aufrunden(372.4) == 400
+
+
+def test_speicherverlust_grob_handout():
+    # Handout 4.2.2: 400 l, 5 Stutzen -> 0.11 x 20 + 0.1 x 3 = 2.5 kWh/d
+    assert round(speicherverlust_kwh(400, 5), 2) == 2.5
+    # Zielwert Dämmung: Faktor 0.73
+    assert round(speicherverlust_kwh(400, 5, 0.73), 3) == 1.825
 
 
 # =====================================================================

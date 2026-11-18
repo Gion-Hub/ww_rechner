@@ -8,6 +8,9 @@
 # Physik
 C_WASSER = 1.163  # Wh pro Liter und Kelvin
 
+# Umrechnung Volumen -> Wärme: 1 l von 10 auf 60 °C (Norm, gerundet)
+KWH_PRO_LITER = 0.058  # kWh/l
+
 # Standard-Temperaturen
 T_WARMWASSER = 60  # °C
 T_KALTWASSER = 10  # °C
@@ -31,7 +34,24 @@ PROFIL_WOHNEN = [
 # ② Grobauslegung (Vorprojekt)
 # =====================================================================
 
-# Folgt: Kennwerte Warmhaltekonzepte, Pumpe, Grenz- und Zielwert Verlustzahl ξ
+# Normbelegung Wohnen: n_P = 3.3 - 2 / (1 + (A_NF / A_0)^3)
+BEZUGSFLAECHE = 100  # m², A_0
+
+# Wärmebedarf Warmwasser pro Person für die Grobauslegung (Handout Abb. 13)
+WAERMEBEDARF_GROB = {   # kWh/(P·d), 60 °C
+    "EFH / Eigentumswohnung": 2.32,
+    "MFH / Mietwohnung": 2.03,
+    "Büro": 0.174,
+}
+
+# Erste Annahme: Wärmeverluste Speicher + Verteilung = +50 %
+ZUSCHLAG_VERLUSTE_GROB = 1.5
+
+# Dämmung Speicher (Handout S. 22): Faktor auf den Speicherverlust
+DAEMMUNG_SPEICHER = {
+    "Grenzwert": 1.00,
+    "Zielwert": 0.73,
+}
 
 
 # =====================================================================
