@@ -6,10 +6,12 @@ import streamlit as st
 from wwrechner.berechnung import (
     aufrunden,
     ausstossverlust_kwh,
+    ausstosszeit_s,
     bereitschaftsvolumen_kwh,
     endenergie_kwh,
     endenergie_jahr_kwh,
     ladeleistung_kw,
+    leitungsinhalt_l,
     normbelegung,
     speicher_genuegt,
     speicherverlust_kwh,
@@ -29,7 +31,11 @@ from wwrechner.berechnung import (
 from wwrechner.diagramme import tagesprofil_diagramm
 
 from wwrechner.tabellen import (
+    
+    AUSSTOSSZEIT_MIT_WARMHALTUNG,
+    AUSSTOSSZEIT_OHNE_WARMHALTUNG,
     DAEMMUNG_SPEICHER,
+    DURCHFLUSS_ARMATUR,
     ETA_HOLZ_WW,
     F_STO,
     PROFIL_WOHNEN,
@@ -181,7 +187,36 @@ with tab_grob:
         help="Vorgewählt ist das Konzept mit der kleinsten Verlustzahl",
     )
 
-    st.caption("Folgt: Ausstosszeiten.")
+    # --- Ausstosszeiten ---
+    st.subheader("Ausstosszeit")
+    st.caption("Ungünstigste Entnahmestelle: alle nicht warm gehaltenen Leitungsabschnitte bis zur Armatur erfassen.")
+    links, rechts = st.columns(2)
+    with links:
+        abschnitte = st.data_editor(
+            pd.DataFrame({
+                "Abschnitt": ["Verteiler", "Ausstossleitung"],
+                "Innendurchmesser [mm]": [16.0, 11.6],
+                "Länge [m]": [4.0, 12.0],
+            }),
+            num_rows="dynamic", hide_index=True, width="stretch",
+        )
+    with rechts:
+        armatur = st.selectbox("Entnahmearmatur (Abb. 11)", list(DURCHFLUSS_ARMATUR.keys()), index=2)
+        warm_gehalten = st.checkbox("Verteilleitungen warm gehalten", value=True)
+
+    abschnitte = abschnitte.dropna()
+    liste = list(zip(abschnitte["Innendurchmesser [mm]"], abschnitte["Länge [m]"]))
+    inhalt = leitungsinhalt_l(liste)
+    t_em = ausstosszeit_s(inhalt, DURCHFLUSS_ARMATUR[armatur])
+    t_max = AUSSTOSSZEIT_MIT_WARMHALTUNG if warm_gehalten else AUSSTOSSZEIT_OHNE_WARMHALTUNG
+
+    a1, a2 = st.columns(2)
+    a1.metric("Wasserinhalt V_w,em", f"{inhalt:.2f} l")
+    a2.metric("Ausstosszeit t_em", f"{t_em:.1f} s", f"max. {t_max} s", delta_color="off")
+    if t_em <= t_max:
+        st.success(f"Ausstosszeit {t_em:.1f} s ≤ {t_max} s → Anforderung erfüllt")
+    else:
+        st.error(f"Ausstosszeit {t_em:.1f} s > {t_max} s → Leitung kürzen, Durchmesser verkleinern oder Warmhaltung näher an die Entnahmestelle")
 
 
 # =====================================================================

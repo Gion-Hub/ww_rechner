@@ -3,10 +3,12 @@
 from wwrechner.berechnung import (
     aufrunden,
     ausstossverlust_kwh,
+    ausstosszeit_s,
     bereitschaftsvolumen_kwh,
     endenergie_kwh,
     endenergie_jahr_kwh,
     ladeleistung_kw,
+    leitungsinhalt_l,
     normbelegung,
     speicher_genuegt,
     speicherverlust_kwh,
@@ -86,7 +88,6 @@ def test_speicherverlust_grob_handout():
     assert round(speicherverlust_kwh(400, 5, 0.73), 3) == 1.825
 
 
-
 def test_verlustzahl_handout_konzept_a():
     # Handout 4.2.3: 2 WE, je 10 m VL + 10 m RL, Q'sto 2.5, Q'W 14.4 -> ξ = 57.3 %
     r = warmhaltekonzept_auswerten("A: Konventionelle Zirkulation", 2, 10, 10, 2.5, 14.4, "Grenzwert")
@@ -105,6 +106,22 @@ def test_verlustzahl_handout_konzept_c():
     r = warmhaltekonzept_auswerten("C: Warmhalteband", 2, 10, 10, 2.5, 14.4, "Grenzwert")
     assert round(r["e_hilf"], 1) == 1.6
     assert abs(r["xi"] - 0.507) < 0.001  # Handout: 50.7 %
+
+
+
+def test_ausstosszeit_handout_variante_1():
+    # Handout 4.1.1: Verteiler 16 mm / 4 m + Ausstossleitung 11.6 mm / 12 m, Spültisch 0.2 l/s
+    inhalt = leitungsinhalt_l([(16, 4), (11.6, 12)])
+    assert round(inhalt, 3) == 2.072
+    assert round(ausstosszeit_s(inhalt, 0.2), 1) == 20.7  # > 10 s: nicht erfüllt
+
+
+def test_ausstosszeit_handout_variante_2():
+    # Handout 4.1.1: Verteiler warm gehalten, Spültisch näher: 11.6 mm / 9 m
+    inhalt = leitungsinhalt_l([(11.6, 9)])
+    assert round(inhalt, 3) == 0.951
+    assert round(ausstosszeit_s(inhalt, 0.2), 1) == 9.5  # ≤ 10 s: erfüllt
+
 
 # =====================================================================
 # ③ Feinauslegung (Bauprojekt)

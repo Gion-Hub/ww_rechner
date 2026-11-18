@@ -117,6 +117,21 @@ def warmhaltekonzept_auswerten(konzept, wohnungen, vorlauf_pro_we, ruecklauf_pro
         "xi": verlustzahl(q_speicher, q_hl, e_hilf, k["f_hl"], q_nutz),
     }
 
+
+def leitungsinhalt_l(abschnitte):
+    """Wasserinhalt nicht warm gehaltener Leitungen in Litern.
+    abschnitte: Liste von (Innendurchmesser in mm, Länge in m)."""
+    inhalt_m3 = 0
+    for d_mm, laenge_m in abschnitte:
+        inhalt_m3 += math.pi / 4 * (d_mm / 1000) ** 2 * laenge_m
+    return inhalt_m3 * 1000
+
+
+def ausstosszeit_s(inhalt_l, durchfluss_l_s):
+    """Zeit, bis an der Entnahmestelle warmes Wasser kommt, in s (t_em = 2 · V / q)."""
+    return 2 * inhalt_l / durchfluss_l_s
+
+
 # =====================================================================
 # ③ Feinauslegung (Bauprojekt)
 # =====================================================================

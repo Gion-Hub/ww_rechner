@@ -53,7 +53,6 @@ DAEMMUNG_SPEICHER = {
     "Zielwert": 0.73,
 }
 
-
 # Warmhaltekonzepte (Handout 4.2.3)
 # verlust:       linearer Wärmeverlust in kWh/(m·d)
 # mit_ruecklauf: True = Vor- und Rücklauf zählen (nur konventionelle Zirkulation)
@@ -75,6 +74,17 @@ HILFSENERGIE_BAND = 2 / 3          # Warmhalteband: Hilfsenergie = 2/3 der Wärm
 GEWICHTUNG_HILFSENERGIE = 2.5      # Strom zählt in der Verlustzahl 2.5-fach
 VERLUSTZAHL_GRENZWERT = 0.50       # ξ_ls ≤ 50 %
 VERLUSTZAHL_ZIELWERT = 0.40        # ξ_ls ≤ 40 %
+
+# Ausstosszeiten (Handout 4.1.1)
+# Durchfluss der Entnahmearmatur in l/s (Handout Abb. 11)
+DURCHFLUSS_ARMATUR = {
+    "Waschtisch": 0.1,
+    "Dusche": 0.2,
+    "Spültisch": 0.2,
+    "Badewanne": 0.3,
+}
+AUSSTOSSZEIT_MIT_WARMHALTUNG = 10   # s, max. Wartezeit, wenn Verteilleitungen warm gehalten
+AUSSTOSSZEIT_OHNE_WARMHALTUNG = 15  # s
 
 
 # =====================================================================
