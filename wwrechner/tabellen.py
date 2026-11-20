@@ -137,3 +137,15 @@ ETA_HOLZ_WW = {
 # Umrechnung Tag -> Jahr (Handout 5.4)
 TAGE_PRO_JAHR = 365
 JAHRESFAKTOR = 0.8  # Jahresnutzungsgrad nach SIA 2024
+
+# =====================================================================
+# ④ Ladesimulation (Skript B4, Kap. 4.6 Stufen- vs. Schichtladung)
+# =====================================================================
+
+SCHICHTEN = 30                  # Speicher wird in 30 gleich grosse Schichten geteilt
+FUEHLER_HOEHEN = [0.10, 0.30, 0.50, 0.70, 0.90]   # T1 … T5, Anteil der Höhe von oben
+LADESTUTZEN_STUFE = 0.30        # Ladestutzen Stufenladung auf Höhe T2 (Abb. 25)
+GRAEDIGKEIT_PWT = 2.0           # K, Plattentauscher (Skript S. 47: 1–2 K)
+GUETEGRAD_WP = 0.45             # Gütegrad Wärmepumpe (Anteil am Carnot-COP), Annahme
+T_KONDENSATION_MIN = 40.0       # °C, darunter steigt der COP nicht mehr, Annahme
+DELTA_T_STUFE = 10.0            # K, Temperaturhub pro Durchgang bei Stufenladung (fester Volumenstrom)

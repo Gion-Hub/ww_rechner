@@ -13,6 +13,7 @@ from wwrechner.berechnung import (
     ladeleistung_kw,
     leitungsinhalt_l,
     normbelegung,
+    reserve_ladezeit_kwh,
     speicher_genuegt,
     speicherverlust_kwh,
     speichervolumen_erforderlich_l,
@@ -28,7 +29,10 @@ from wwrechner.berechnung import (
     wirkungsgrad_holz,
     zirkulationsverlust_kwh,
 )
-from wwrechner.diagramme import tagesprofil_diagramm
+
+from wwrechner.diagramme import ladeverlauf_diagramm, speicher_einzeln, speicher_schema, tagesprofil_diagramm
+
+from wwrechner.ladung import ladung_auswerten, ladung_simulieren
 
 from wwrechner.tabellen import (
     
@@ -241,6 +245,9 @@ with tab_fein:
         f_sto = F_STO[speicherart]
         ladezyklen = st.number_input("Ladezyklen pro Tag", min_value=1, max_value=24, value=2)
         v_gewaehlt = st.number_input("Gewählter Speicher [l]", min_value=50, max_value=10000, value=500, step=50)
+        ladezeit = st.number_input("Ladezeit pro Ladung [h]", min_value=0.5, max_value=12.0, value=2.0, step=0.5)
+        ladeart = st.radio("Ladeprinzip (Skript B4, Kap. 4.6)", ["Schichtladung", "Stufenladung"], horizontal=True,
+                           help="Stufenladung: Wärme erst am Ladeende nutzbar → Reserve für die Ladezeit nötig")        
 
     # Berechnung: Verluste mit dem gewählten Speicher, daraus das erforderliche Volumen
     anteil = stundenspitze_anteil(personen)
@@ -250,6 +257,8 @@ with tab_fein:
     q_speicher = speicherverlust_kwh(v_gewaehlt)
     q_gesamt = waermebedarf_gesamt_kwh(energie, q_speicher, q_zirk, q_ausstoss)
     q_bereit = bereitschaftsvolumen_kwh(energie, anteil, q_gesamt, ladezyklen)
+    q_reserve = reserve_ladezeit_kwh(q_gesamt, ladezeit) if ladeart == "Stufenladung" else 0
+    q_bereit = q_bereit + q_reserve
     v_erf = speichervolumen_erforderlich_l(q_bereit, t_warm, t_kalt, f_sto)
 
     st.divider()
@@ -263,7 +272,8 @@ with tab_fein:
     e1, e2, e3, e4 = st.columns(4)
     e1.metric("Stundenspitze", f"{spitze_liter:.0f} l/h", f"{anteil * 100:.1f} % des Tagesbedarfs", delta_color="off")
     e2.metric("Wärmebedarf gesamt", f"{q_gesamt:.2f} kWh/d")
-    e3.metric("Bereitschaftsvolumen", f"{q_bereit:.2f} kWh")
+    e3.metric("Bereitschaftsvolumen", f"{q_bereit:.2f} kWh",
+          f"davon Reserve Stufenladung {q_reserve:.2f} kWh" if q_reserve else None, delta_color="off")
     e4.metric("f_sto", f"{f_sto:.2f}")
 
     if speicher_genuegt(v_gewaehlt, v_erf):
@@ -273,37 +283,95 @@ with tab_fein:
 
 
 # =====================================================================
-# ④ Wärmeerzeuger
+# ④ Wärmeerzeugung & Speicherladung
 # =====================================================================
 with tab_erzeuger:
-    st.header("Wärmeerzeuger")
+    st.header("Wärmeerzeugung & Ladung")
     st.info(
     "- Übernimmt Wärmebedarf und Ladestrategie aus der Feinauslegung.\n"
-    "- Bestimmt die erforderliche Ladeleistung.\n"
-    "- Vergleicht Wärmeerzeuger über Nutzungsgrad und Endenergie pro Tag und Jahr."
+    "- Bestimmt die Ladeleistung und simuliert den Ladeverlauf im Speicher (Schicht- vs. Stufenladung).\n"
+    "- Vergleicht Wärmeerzeuger über Nutzungsgrad bzw. COP und Endenergie pro Tag und Jahr."
     )
 
+    phi_gen = ladeleistung_kw(q_gesamt, ladezyklen, ladezeit)
+    st.metric("Ladeleistung ΦW,gen", f"{phi_gen:.1f} kW", f"{ladezyklen} Ladungen à {ladezeit} h", delta_color="off")
+
+    erzeuger = st.radio("Wärmeerzeuger", ["Wärmepumpe", "Holzfeuerung"], horizontal=True)
+    links, rechts = st.columns(2)
+    if erzeuger == "Holzfeuerung":
+        with links:
+            brennstoff = st.selectbox("Brennstoff", list(ETA_HOLZ_WW.keys()))
+        with rechts:
+            kondensation = st.checkbox("Mit Abgaskondensation")
+            modulierend = st.checkbox("Modulierender / mehrstufiger Brenner")
+    else:
+        with links:
+            t_quelle = st.number_input("Quellentemperatur [°C]", min_value=-20.0, max_value=20.0, value=0.0, step=1.0,
+                                       help="Erdsonde ca. 0 °C, Aussenluft im Jahresmittel ca. 5 °C")
+        with rechts:
+            st.caption("COP = Gütegrad · T_VL / (T_VL − T_Quelle) mit T in Kelvin, "
+                       "Gütegrad und Mindest-Kondensationstemperatur siehe tabellen.py")
+
+    # --- Ladeverlauf ---
+    st.subheader("Ladeverlauf im Speicher")
     links, rechts = st.columns(2)
     with links:
-        st.subheader("Ladung")
-        ladezeit = st.number_input("Ladezeit pro Ladung [h]", min_value=0.5, max_value=12.0, value=2.0, step=0.5)
+        anteil_warm = st.slider("Warmer Anteil beim Ladestart [%]", 0, 80, 20, step=5,
+                                help="Restinhalt über dem Fühler EIN (Spitzendeckung)") / 100
     with rechts:
-        st.subheader("Holzfeuerung")
-        brennstoff = st.selectbox("Brennstoff", list(ETA_HOLZ_WW.keys()))
-        kondensation = st.checkbox("Mit Abgaskondensation")
-        modulierend = st.checkbox("Modulierender / mehrstufiger Brenner")
+        zapfung = st.number_input("Zapfung während der Ladung [l/h]", min_value=0, max_value=500, value=0, step=10,
+                                  help="Skript S. 47: Gleichzeitiger Bezug stört vor allem die Stufenladung")
 
-    eta = wirkungsgrad_holz(brennstoff, kondensation, modulierend)
-    phi_gen = ladeleistung_kw(q_gesamt, ladezyklen, ladezeit)
+    t_q = t_quelle if erzeuger == "Wärmepumpe" else 0
+    verlaeufe = {}
+    for art in ["Schichtladung", "Stufenladung"]:
+        verlaeufe[art] = ladung_simulieren(art, v_gewaehlt, phi_gen, t_warm, t_kalt, t_q,
+                                           anteil_warm=anteil_warm, zapfung_l_h=zapfung)
+    auswertung = {art: ladung_auswerten(v, t_warm) for art, v in verlaeufe.items()}
 
-    st.divider()
-    st.metric("Ladeleistung ΦW,gen", f"{phi_gen:.1f} kW")
+    anzeige = st.radio("Ladeprinzip anzeigen", ["Schichtladung", "Stufenladung"], horizontal=True,
+                       index=["Schichtladung", "Stufenladung"].index(ladeart))
+    verlauf = verlaeufe[anzeige]
+    a = auswertung[anzeige]
+    if not a["fertig"]:
+        st.warning("Ladung nach 10 h nicht abgeschlossen: Zapfung zu gross oder Leistung zu klein.")
+
+    st.pyplot(speicher_schema(verlauf, anzeige, t_kalt, t_warm))
+
+    minute = st.slider("Zeitpunkt [min]", 0, verlauf[-1]["minute"], verlauf[-1]["minute"] // 3)
+    bild_links, bild_rechts = st.columns([1, 3])
+    with bild_links:
+        st.pyplot(speicher_einzeln(verlauf[minute]["temp"], anzeige, t_kalt, t_warm, f"{minute} min"))
+    with bild_rechts:
+        st.pyplot(ladeverlauf_diagramm(verlauf, anzeige, markierung=minute))
+
+    vergleich = pd.DataFrame({
+        "Ladeprinzip": list(verlaeufe),
+        "Ladedauer [min]": [auswertung[x]["dauer_min"] for x in verlaeufe],
+        "Wärme [kWh]": [auswertung[x]["waerme_kwh"] for x in verlaeufe],
+        "Strom WP [kWh]": [auswertung[x]["strom_kwh"] for x in verlaeufe],
+        "COP Mittel [-]": [auswertung[x]["cop_mittel"] for x in verlaeufe],
+        "Min. Temperatur oben T1 [°C]": [auswertung[x]["t_oben_min"] for x in verlaeufe],
+    })
+    st.dataframe(vergleich.round(2), hide_index=True, width="stretch")
+    if erzeuger == "Wärmepumpe":
+        gewinn = auswertung["Stufenladung"]["cop_mittel"] / auswertung["Schichtladung"]["cop_mittel"] - 1
+        st.caption(f"Stufenladung ist in dieser Simulation {gewinn * 100:.0f} % effizienter (Skript: 15–20 %).")
+
+    # --- Endenergie ---
+    st.subheader("Endenergie")
+    if erzeuger == "Holzfeuerung":
+        eta = wirkungsgrad_holz(brennstoff, kondensation, modulierend)
+        name_eta = "Nutzungsgrad η_per,W"
+    else:
+        eta = auswertung[ladeart]["cop_mittel"]
+        name_eta = f"COP ({ladeart})"
 
     if eta is None:
         st.warning(f"{brennstoff} ist in Abb. 22 nicht mit modulierendem Brenner aufgeführt.")
     else:
         e_tag = endenergie_kwh(q_gesamt, eta)
         w1, w2, w3 = st.columns(3)
-        w1.metric("Nutzungsgrad η_per,W", f"{eta:.2f}")
+        w1.metric(name_eta, f"{eta:.2f}")
         w2.metric("Endenergie pro Tag", f"{e_tag:.1f} kWh/d")
         w3.metric("Endenergie pro Jahr", f"{endenergie_jahr_kwh(e_tag):,.0f} kWh/a".replace(",", "'"))

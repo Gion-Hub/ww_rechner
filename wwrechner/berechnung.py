@@ -179,6 +179,12 @@ def bereitschaftsvolumen_kwh(q_nutz, spitze_anteil, q_gesamt, ladezyklen):
     return q_spitze + q_gesamt / ladezyklen
 
 
+def reserve_ladezeit_kwh(q_gesamt, ladezeit_h):
+    """Zusatzreserve Stufenladung: mittlerer Bezug während der Ladezeit, in kWh.
+    Bei Stufenladung ist die geladene Wärme erst am Ladeende nutzbar (Skript B4, S. 45)."""
+    return q_gesamt / 24 * ladezeit_h
+
+
 def speichervolumen_erforderlich_l(q_bereitschaft, t_speicher, t_kalt, f_sto):
     """Erforderliches Speichervolumen in Litern (VW,sto)."""
     kwh_pro_liter = C_WASSER / 1000 * (t_speicher - t_kalt)
