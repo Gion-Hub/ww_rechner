@@ -1,0 +1,29 @@
+gruppe;nutzung;standard;einheit;vw_l;sigma_v;qw_kwh;sigma_q
+Wohnen;EFH / Eigentumswohnung;einfacher Standard;Person;40;5.0;2.32;0.290
+Wohnen;EFH / Eigentumswohnung;mittlerer Standard;Person;45;7.5;2.61;0.440
+Wohnen;EFH / Eigentumswohnung;gehobener Standard;Person;55;7.5;3.19;0.440
+Wohnen;MFH / Mietwohnung;allgemeiner Standard;Person;35;5.0;2.03;0.290
+Wohnen;MFH / Mietwohnung;gehobener Standard;Person;45;7.5;2.61;0.440
+Büro;Büro;ohne Personalrestaurant;Person;3;0.5;0.17;0.029
+Gastronomie;Cafeteria, Tea-Room;Besetzung mässig;Sitzplatz;20;5.0;1.16;0.290
+Gastronomie;Cafeteria, Tea-Room;Besetzung hoch;Sitzplatz;30;5.0;1.74;0.290
+Gastronomie;Restaurant;einfach, Tellergerichte;Mahlzeit;8;1.0;0.46;0.058
+Gastronomie;Restaurant;mehrere Gänge;Mahlzeit;10;2.5;0.58;0.145
+Beherbergung;Gasthof, Hotel;einfach (Zimmer mit Dusche);Bett;40;5.0;2.32;0.290
+Beherbergung;Appartementhaus;Mittelklasse;Bett;50;10.0;2.90;0.580
+Beherbergung;Appartementhaus;gehobene Klasse;Bett;80;10.0;4.64;0.580
+Beherbergung;Appartementhaus;Luxus;Bett;100;25.0;5.80;1.450
+Heimwesen;Kinderheim;einfacher Standard;Bett;50;5.0;2.90;0.290
+Heimwesen;Altersheim;einfacher Standard;Bett;40;5.0;2.32;0.290
+Heimwesen;Alters- und Pflegeheim;einfacher Standard;Bett;50;7.5;2.90;0.440
+Heimwesen;Krankenhaus, Klinik;einfach;Bett;60;10.0;3.48;0.580
+Heimwesen;Krankenhaus, Klinik;durchschnittlich;Bett;80;10.0;4.64;0.580
+Heimwesen;Krankenhaus, Klinik;umfangreich;Bett;120;15.0;6.96;0.870
+Weitere;Wäscherei;Trockenwäsche;kg Wäsche;4;0.5;0.23;0.029
+Weitere;Dusche;Schüler;Dusche;20;2.5;1.16;0.145
+Weitere;Dusche;Sportler, Wohnen;Dusche;25;2.5;1.45;0.145
+Weitere;Dusche;Fabrik, schwach schmutzend;Dusche;30;2.5;1.74;0.145
+Weitere;Dusche;Fabrik, stark schmutzend;Dusche;35;2.5;2.03;0.145
+Weitere;Badewanne;normale Wanne;Bad;90;10.0;5.22;0.580
+Weitere;Badewanne;Grosswanne;Bad;110;5.0;6.38;0.290
+Weitere;Badewanne;Grossraumwanne;Bad;300;30.0;17.40;1.740
