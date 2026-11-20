@@ -15,6 +15,8 @@ from wwrechner.berechnung import (
     speichervolumen_erforderlich_l,
     spitzenstunde,
     stundenspitze_anteil,
+    stundenspitze_formel_kwh,
+    stundenspitze_zapfung_kwh,
     tagesbedarf_liter,
     tagesvolumen_grob_l,
     warmhaltekonzept_auswerten,
@@ -136,6 +138,16 @@ def test_stundenspitze_uebergang_bei_10_personen():
     assert abs(stundenspitze_anteil(10) - stundenspitze_anteil(9.99)) < 0.01
 
 
+def test_stundenspitze_formel():
+    # 10 kWh/d Nutzwärme, 25 Personen -> 30.12 % -> 3.01 kWh
+    assert round(stundenspitze_formel_kwh(10, 25), 2) == 3.01
+
+
+def test_stundenspitze_zapfung_handout():
+    # Badewanne 110 l + 2 Duschen à 30 l = 170 l x 0.058 kWh/l = 9.86 kWh
+    assert round(stundenspitze_zapfung_kwh(170), 2) == 9.86
+
+
 def test_zirkulationsverlust():
     assert zirkulationsverlust_kwh(50) == 6.0
 
@@ -155,8 +167,13 @@ def test_waermebedarf_gesamt():
 
 
 def test_bereitschaftsvolumen():
-    # 10 kWh Nutzwärme, 30 % Spitze, 20.66 kWh gesamt, 2 Ladungen pro Tag
-    assert round(bereitschaftsvolumen_kwh(10.0, 0.30, 20.66, 2), 2) == 13.33
+    # 3 kWh Spitze, 20.66 kWh gesamt, 2 Ladungen pro Tag
+    assert round(bereitschaftsvolumen_kwh(3.0, 20.66, 2), 2) == 13.33
+
+
+def test_bereitschaftsvolumen_handout():
+    # Handout: 9.9 kWh Spitze + 28 kWh / 2 Ladungen = 23.9 kWh
+    assert round(bereitschaftsvolumen_kwh(9.9, 28, 2), 1) == 23.9
 
 
 def test_speichervolumen_erforderlich():

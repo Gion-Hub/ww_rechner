@@ -143,6 +143,16 @@ def stundenspitze_anteil(personen):
     return 1.3227 * personen**-0.428
 
 
+def stundenspitze_formel_kwh(q_nutz, personen):
+    """Stundenspitze QW,pk nach SIA 385/2 (Wohnen ab 10 Personen), in kWh."""
+    return q_nutz * stundenspitze_anteil(personen)
+
+
+def stundenspitze_zapfung_kwh(liter):
+    """Stundenspitze QW,pk aus der Zapfmenge in der stärksten Stunde, in kWh."""
+    return liter * KWH_PRO_LITER
+
+
 def zirkulationsverlust_kwh(leitungslaenge_m):
     """Wärmeverlust der Zirkulationsleitung pro Tag in kWh."""
     return leitungslaenge_m * VERLUST_ZIRKULATION
@@ -173,9 +183,9 @@ def waermebedarf_gesamt_kwh(q_nutz, q_speicher, q_zirkulation, q_ausstoss):
     return q_nutz + q_speicher + q_zirkulation + q_ausstoss
 
 
-def bereitschaftsvolumen_kwh(q_nutz, spitze_anteil, q_gesamt, ladezyklen):
-    """Wärmemenge, die der Speicher bereithalten muss (QW,sto,cont), in kWh."""
-    q_spitze = q_nutz * spitze_anteil          # Stundenspitze QW,pk
+def bereitschaftsvolumen_kwh(q_spitze, q_gesamt, ladezyklen):
+    """Wärmemenge, die der Speicher bereithalten muss (QW,sto,cont), in kWh.
+    Stundenspitze QW,pk plus eine Ladung QW,gen,out / n_z."""
     return q_spitze + q_gesamt / ladezyklen
 
 
@@ -197,7 +207,7 @@ def speicher_genuegt(v_gewaehlt, v_erforderlich):
 
 
 # =====================================================================
-# ④ Wärmeerzeuger
+# ④ Wärmeerzeugung & Speicherladung
 # =====================================================================
 
 def ladeleistung_kw(q_gesamt, ladezyklen, ladezeit_h):

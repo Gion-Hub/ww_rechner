@@ -18,7 +18,8 @@ from wwrechner.berechnung import (
     speicherverlust_kwh,
     speichervolumen_erforderlich_l,
     spitzenstunde,
-    stundenspitze_anteil,
+    stundenspitze_formel_kwh,
+    stundenspitze_zapfung_kwh,
     tagesbedarf_liter,
     tagesvolumen_grob_l,
     verbrauch_pro_stunde,
@@ -44,6 +45,7 @@ from wwrechner.tabellen import (
     F_STO,
     PROFIL_WOHNEN,
     PUMPE,
+    STANDARD_SPITZE_L,
     T_KALTWASSER,
     T_WARMWASSER,
     VERLUSTZAHL_GRENZWERT,
@@ -250,13 +252,28 @@ with tab_fein:
                            help="Stufenladung: Wärme erst am Ladeende nutzbar → Reserve für die Ladezeit nötig")        
 
     # Berechnung: Verluste mit dem gewählten Speicher, daraus das erforderliche Volumen
-    anteil = stundenspitze_anteil(personen)
-    spitze_liter = bedarf * anteil
+
+    st.subheader("Stundenspitze")
+    methode = st.radio("Methode", ["Formel SIA 385/2", "Zapfmenge in der Spitzenstunde", "Direkte Eingabe"],
+                       index=0 if personen >= 10 else 1, horizontal=True,
+                       help="Die Formel gilt nur für Wohnen ab 10 Personen")
+    if methode == "Formel SIA 385/2":
+        if personen < 10:
+            st.warning("Die Formel gilt erst ab 10 Personen. Für kleine Gebäude die Zapfmenge verwenden.")
+        q_spitze = stundenspitze_formel_kwh(energie, personen)
+    elif methode == "Zapfmenge in der Spitzenstunde":
+        spitze_l = st.number_input("Zapfmenge in der stärksten Stunde [l]", min_value=0, max_value=10000,
+                                   value=STANDARD_SPITZE_L, step=10,
+                                   help="Startwert: Badewanne 110 l + 2 Duschen à 30 l")
+        q_spitze = stundenspitze_zapfung_kwh(spitze_l)
+    else:
+        q_spitze = st.number_input("Stundenspitze QW,pk [kWh]", min_value=0.0, max_value=1000.0, value=10.0, step=0.5)
+
     q_zirk = zirkulationsverlust_kwh(zirk_laenge)
     q_ausstoss = ausstossverlust_kwh(wohnungen, personen / wohnungen, warmhaltung)
     q_speicher = speicherverlust_kwh(v_gewaehlt)
     q_gesamt = waermebedarf_gesamt_kwh(energie, q_speicher, q_zirk, q_ausstoss)
-    q_bereit = bereitschaftsvolumen_kwh(energie, anteil, q_gesamt, ladezyklen)
+    q_bereit = bereitschaftsvolumen_kwh(q_spitze, q_gesamt, ladezyklen)
     q_reserve = reserve_ladezeit_kwh(q_gesamt, ladezeit) if ladeart == "Stufenladung" else 0
     q_bereit = q_bereit + q_reserve
     v_erf = speichervolumen_erforderlich_l(q_bereit, t_warm, t_kalt, f_sto)
@@ -270,7 +287,7 @@ with tab_fein:
 
     st.subheader("Speichervolumen")
     e1, e2, e3, e4 = st.columns(4)
-    e1.metric("Stundenspitze", f"{spitze_liter:.0f} l/h", f"{anteil * 100:.1f} % des Tagesbedarfs", delta_color="off")
+    e1.metric("Stundenspitze QW,pk", f"{q_spitze:.2f} kWh", methode, delta_color="off")
     e2.metric("Wärmebedarf gesamt", f"{q_gesamt:.2f} kWh/d")
     e3.metric("Bereitschaftsvolumen", f"{q_bereit:.2f} kWh",
           f"davon Reserve Stufenladung {q_reserve:.2f} kWh" if q_reserve else None, delta_color="off")

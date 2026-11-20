@@ -91,6 +91,10 @@ AUSSTOSSZEIT_OHNE_WARMHALTUNG = 15  # s
 # ③ Feinauslegung (Bauprojekt)
 # =====================================================================
 
+# Stundenspitze ohne Formel: Zapfmenge in der stärksten Stunde (Handout, kleine Gebäude)
+# Annahme: Badewanne 110 l + 2 Duschen à 30 l
+STANDARD_SPITZE_L = 170  # l
+
 # Zirkulation: Wärmeverlust pro Meter Leitung und Tag
 VERLUST_ZIRKULATION = 0.12  # kWh/(m·d), konventionelle Zirkulation
 
