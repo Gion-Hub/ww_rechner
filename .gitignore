@@ -1,3 +1,7 @@
 .venv/
 __pycache__/
 .pytest_cache/
+
+
+# Datenbank wird aus daten/nutzungen.csv automatisch erstellt
+daten/*.db

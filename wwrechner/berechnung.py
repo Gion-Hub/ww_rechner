@@ -230,3 +230,18 @@ def endenergie_kwh(q_gesamt, wirkungsgrad):
 def endenergie_jahr_kwh(e_tag):
     """Endenergie pro Jahr in kWh (Tageswert · 365 · 0.8)."""
     return e_tag * TAGE_PRO_JAHR * JAHRESFAKTOR
+
+
+# =====================================================================
+# Nutzungen aus der Datenbank (SIA 385/2, Anhang A.3)
+# =====================================================================
+
+def bedarf_mit_streuung(mittelwert, sigma, anzahl):
+    """Tagesbedarf inkl. Sicherheitszuschlag für die Streuung (SIA 385/2, Anhang A.3).
+    Funktioniert für Liter (VW) und kWh (QW). Ab 10 Einheiten gleicht sich die Streuung
+    teilweise aus, darum wird der Zuschlag durch √anzahl geteilt."""
+    if anzahl <= 0:
+        return 0
+    if anzahl >= 10:
+        return (mittelwert + 2 * sigma / anzahl**0.5) * anzahl
+    return (mittelwert + 2 * sigma) * anzahl

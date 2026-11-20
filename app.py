@@ -7,6 +7,7 @@ from wwrechner.berechnung import (
     aufrunden,
     ausstossverlust_kwh,
     ausstosszeit_s,
+    bedarf_mit_streuung,
     bereitschaftsvolumen_kwh,
     endenergie_kwh,
     endenergie_jahr_kwh,
@@ -20,7 +21,6 @@ from wwrechner.berechnung import (
     spitzenstunde,
     stundenspitze_formel_kwh,
     stundenspitze_zapfung_kwh,
-    tagesbedarf_liter,
     tagesvolumen_grob_l,
     verbrauch_pro_stunde,
     waermebedarf_gesamt_kwh,
@@ -30,13 +30,10 @@ from wwrechner.berechnung import (
     wirkungsgrad_holz,
     zirkulationsverlust_kwh,
 )
-
+from wwrechner.datenbank import gruppen_laden, nutzungen_laden
 from wwrechner.diagramme import ladeverlauf_diagramm, speicher_einzeln, speicher_schema, tagesprofil_diagramm
-
 from wwrechner.ladung import ladung_auswerten, ladung_simulieren
-
 from wwrechner.tabellen import (
-    
     AUSSTOSSZEIT_MIT_WARMHALTUNG,
     AUSSTOSSZEIT_OHNE_WARMHALTUNG,
     DAEMMUNG_SPEICHER,
@@ -92,22 +89,31 @@ with tab_bedarf:
     eingabe, ergebnis, grafik = st.columns([1, 1, 2.6])
     with eingabe:
         st.subheader("Nutzung")
+        gruppe = st.selectbox("Gruppe", gruppen_laden())
+        nutzungen = nutzungen_laden(gruppe)
+        bezeichnungen = (nutzungen["nutzung"] + " – " + nutzungen["standard"]).tolist()
+        wahl = st.selectbox("Nutzung", bezeichnungen)
+        nutzung = nutzungen.iloc[bezeichnungen.index(wahl)]
+
+        anzahl_be = st.number_input(f"Anzahl {nutzung['einheit']}", min_value=1, max_value=5000, value=8)
         wohnungen = st.number_input("Anzahl Wohnungen", min_value=1, max_value=200, value=4)
-        personen = st.number_input("Anzahl Personen", min_value=1, max_value=500, value=8)
-        liter_pro_person = st.number_input("Warmwasser pro Person [l/Tag]", min_value=10, max_value=200, value=40)
+        if nutzung["einheit"] == "Person":
+            personen = anzahl_be
+        else:
+            personen = st.number_input("Anzahl Personen", min_value=1, max_value=5000, value=8)
     with ergebnis:
         st.subheader("Temperaturen")
         t_warm = st.number_input("Warmwassertemperatur [°C]", min_value=40, max_value=80, value=T_WARMWASSER)
         t_kalt = st.number_input("Kaltwassertemperatur [°C]", min_value=0, max_value=30, value=T_KALTWASSER)
 
-    bedarf = tagesbedarf_liter(personen, liter_pro_person)
+    bedarf = bedarf_mit_streuung(nutzung["vw_l"], nutzung["sigma_v"], anzahl_be)
     energie = waermebedarf_kwh(bedarf, t_warm, t_kalt)
     stunden_liter = verbrauch_pro_stunde(bedarf, PROFIL_WOHNEN)
     stunde, liter = spitzenstunde(stunden_liter)
 
     with grafik:
         k1, k2, k3 = st.columns(3)
-        k1.metric("Tagesbedarf", f"{bedarf} l/d")
+        k1.metric("Tagesbedarf", f"{bedarf:.0f} l/d")
         k2.metric("Wärmebedarf (Nutzwärme) QW", f"{energie:.2f} kWh/d")
         k3.metric("Spitzenstunde", f"{stunde:02d}–{stunde + 1:02d} Uhr", f"{liter:.1f} l/h", delta_color="off")
         st.pyplot(tagesprofil_diagramm(stunden_liter))
@@ -118,6 +124,9 @@ with tab_bedarf:
         columns=[f"{h:02d}" for h in range(24)],
     )
     st.dataframe(tabelle.round(0), width="stretch")
+
+    with st.expander(f"Kennwerte {gruppe} aus der Datenbank (SIA 385/2, Anhang A.3)"):
+        st.dataframe(nutzungen, hide_index=True, width="stretch")
 
 
 # =====================================================================
